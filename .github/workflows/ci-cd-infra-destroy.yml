@@ -14,17 +14,27 @@ jobs:
   terraform-destroy:
     if: github.event.inputs.confirm == 'destroy'
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: infra
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: hashicorp/setup-terraform@v3
+
       - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Terraform Init
         run: |
-          az login --service-principal \
-            -u ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }} \
-            -p ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }} \
-            --tenant ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
-      - run: terraform init
-      - run: terraform destroy -auto-approve
+          export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          terraform init -upgrade
+
+      - name: Terraform Destroy
+        run: |
+          export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          terraform destroy -auto-approve

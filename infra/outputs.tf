@@ -3,5 +3,5 @@ output "mysql_fqdn" {
 }
 
 output "function_app_url" {
-  value = "https://${azurerm_linux_function_app.func.default_hostname}"
+  value = "https://${azurerm_function_app_flex_consumption.func.name}.azurewebsites.net"
 }
